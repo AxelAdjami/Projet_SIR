@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receiving page</title>
+</head>
+<style>
+  body {
+    background: black;
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  h1 {
+    left: 0;
+    line-height: 200px;
+    margin-top: -100px;
+    position: absolute;
+    text-align: center;
+    top: 50%;
+    width: 100%;
+    color:white;
+}
+</style>
+<body>
+    <h1 id='title'> Page loaded ! <br> Go to : </h1>
+    <video id='remoteVideo' autoplay playsinline muted style="width: 100%; height: 100%; display: none;"></video>
+</body>
+<script>
+const remoteVideo = document.getElementById('remoteVideo');
+const title = document.getElementById('title');
+let url = window.location.protocol + '//' + window.location.host;
+let peerConnection;
+
+const params = new URLSearchParams(window.location.search);
+const roomID = params.get('roomID');
+
+title.innerText += " " + url + "and select " + roomID + " to start streaming !";
+
+let signaling;
+try {
+  signaling = new WebSocket('wss://ws.tc-net.bzy.li');
+} catch (e) {
+  alert('exception: ' + e.message);
+}
+
+
+
+signaling.onopen = e => {
+  signaling.send(JSON.stringify({type : 'ready', roomID : roomID}));
+}
+
+signaling.onmessage = e => {
+    
+    const message = JSON.parse(e.data);
+    switch (message.type) {
+        case 'offer':
+      handleOffer(message);
+      break;
+    case 'answer':
+      handleAnswer(message);
+      break;
+    case 'candidate':
+      handleCandidate(message);
+      break;
+    case 'ready':
+      // A second tab joined. This tab will initiate a call unless in a call already.
+      if (peerConnection) {
+        console.log('already in call, ignoring');
+        return;
+      }
+      console.log('initiating connection');
+      break;
+    case 'bye':
+      console.log('reloading');
+      location.reload();
+      break;
+    default:
+      console.log('unhandled', e);
+      break;
+  }
+};
+
+async function hangup() {
+    if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+    }
+};
+
+function createPeerConnection() {
+    peerConnection = new RTCPeerConnection({iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, {urls: 'turn:turn.tc-net.bzy.li', username : 'test', credential :'test'}]});
+    peerConnection.oniceconnectionstatechange = () => {
+      const state = peerConnection.iceConnectionState;
+      console.log('ICE state:', state);
+      if (state === "failed" || state === "disconnected" || state === "closed") {
+        location.reload();
+      }
+    }
+    peerConnection.onicecandidate = e => {
+        const message = {
+            type : 'candidate',
+            candidate : null,
+        };
+        if (e.candidate) {
+            message.candidate = e.candidate.candidate;
+            message.sdpMid = e.candidate.sdpMid;
+            message.sdpMLineIndex = e.candidate.sdpMLineIndex;
+            message.roomId = roomID;
+        }
+        console.log(message);
+        signaling.send(JSON.stringify(message));
+    };
+    peerConnection.ontrack = e => { // Quand on reçoit le flux avec WebRTC
+      title.style.display= 'none';
+      remoteVideo.style.display = 'inline';
+      remoteVideo.srcObject = e.streams[0]; // On met le flux vidéo dans notre tag html vidéo
+    }
+};
+
+async function handleOffer(offer) {
+  if (peerConnection) {
+    console.error('existing peerconnection');
+    return;
+  }
+  await createPeerConnection();
+  await peerConnection.setRemoteDescription(offer);
+
+  const answer = await peerConnection.createAnswer();
+  signaling.send(JSON.stringify({type: 'answer', sdp: answer.sdp, roomID : roomID}));
+  await peerConnection.setLocalDescription(answer);
+}
+
+async function handleAnswer(answer) {
+  if (!peerConnection) {
+    console.error('no peerconnection');
+    return;
+  }
+  await peerConnection.setRemoteDescription(answer);
+}
+
+async function handleCandidate(candidate) {
+  if (!peerConnection) {
+    console.error('no peerconnection');
+    return;
+  }
+  if (candidate.candidate) {
+    console.log('adding new candidate');
+    const iceCandidate = new RTCIceCandidate({
+        candidate: candidate.candidate,
+        sdpMid: candidate.sdpMid,
+        sdpMLineIndex: candidate.sdpMLineIndex
+    });
+    await peerConnection.addIceCandidate(iceCandidate);
+  }
+}
+
+</script>
+</html>

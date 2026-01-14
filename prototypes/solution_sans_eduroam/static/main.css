@@ -1,0 +1,187 @@
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #1e293b, #020617);
+  color: #0f172a;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 32px auto;
+  padding: 24px 32px 32px;
+  background: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
+}
+
+h1 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+h2 {
+  margin: 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+#roleInfo {
+  margin: 4px 0 12px;
+  color: #4b5563;
+}
+
+#linkInfo {
+  margin: 4px 0 16px;
+  font-size: 14px;
+  color: #111827;
+  word-break: break-all;
+}
+
+.main-layout {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.col {
+  flex: 0 1 800px; 
+  min-width: 0;
+}
+
+.video-card {
+  background: #111827;
+  border-radius: 12px;
+  padding: 10px 10px 12px;
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.video-card small {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+video {
+  width: 100%;
+  height: 360px;
+  background: #020617;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.video-actions {
+  margin-top: 8px;
+  text-align: right;
+}
+
+.info-card {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #e5e7eb;
+  font-size: 14px;
+  color: #111827;
+}
+
+button {
+  border-radius: 999px;
+  border: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.1s;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.6;
+  box-shadow: none;
+  transform: none;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  color: white;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.45);
+}
+
+.primary-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8, #4338ca);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.6);
+  transform: translateY(-1px);
+}
+
+.secondary-btn {
+  background: #f3f4f6;
+  color: #111827;
+  border: 1px solid #d1d5db;
+}
+
+.secondary-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+#connectionState {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #16a34a;
+}
+
+.id-row {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.id-label {
+  font-weight: 600;
+}
+
+.bandwidth-row {
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.bandwidth-row select {
+  margin-left: 6px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+}
+
+.controls {
+  margin-top: 10px;
+}
+
+@media (max-width: 900px) {
+  .main-layout {
+    flex-direction: column;
+  }
+  video {
+    height: 220px;
+  }
+}
+
+/* On cache la prévisualisation locale, sans casser le JS */
+.video-card-local {
+  display: none;
+}
+.col:has(.video-card-local) {
+  flex: 0 0 auto;
+  width: 0;
+  padding: 0;
+  margin: 0;
+}
+video:-webkit-full-screen,
+video:fullscreen {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
